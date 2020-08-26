@@ -5,3 +5,4 @@
 
 export * from './cwd';
 export * from './folder';
+export * from './project';

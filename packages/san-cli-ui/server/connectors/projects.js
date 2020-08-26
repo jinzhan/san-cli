@@ -274,6 +274,7 @@ class Projects {
         if (currentProject) {
             cwd.set(currentProject.path, context);
         }
+        return currentProject.path;
     }
 
     getType(project, context) {

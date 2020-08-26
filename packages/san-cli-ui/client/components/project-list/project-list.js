@@ -2,15 +2,9 @@
  * @file List组件
  * @author zttonly
  */
-
+import {connect} from '@lib/Store';
 import Component from '@lib/san-component';
-import PROJECTS from '@graphql/project/projects.gql';
-import PROJECT_CURRENT from '@graphql/project/projectCurrent.gql';
-import PROJECT_OPEN from '@graphql/project/projectOpen.gql';
-import PROJECT_SET_FAVORITE from '@graphql/project/projectSetFavorite.gql';
-import PROJECT_RENAME from '@graphql/project/projectRename.gql';
-import PROJECT_REMOVE from '@graphql/project/projectRemove.gql';
-import PROJECT_CWD_RESET from '@graphql/project/projectCwdReset.gql';
+import '@store';
 import List from './list';
 import 'animate.css';
 import './project-list.less';
@@ -115,15 +109,10 @@ export default class ProjectList extends Component {
         'c-list': List
     }
     attached() {
-        this.projectApollo();
+        this.actions.getProjects();
+        this.actions.getCurrentProject();
     }
-    async projectApollo() {
-        let projects = await this.$apollo.query({query: PROJECTS});
-        projects.data && this.data.set('projects', projects.data.projects);
-        let projectCurrent = await this.$apollo.query({query: PROJECT_CURRENT});
-        // 当前打开的project,记录在数据库
-        projectCurrent.data && this.data.set('projectCurrent', projectCurrent.data.projectCurrent);
-    }
+
     onOpen({item}) {
         openInEditor.call(this, item.path);
     }
@@ -134,59 +123,44 @@ export default class ProjectList extends Component {
     }
     async handleModalOk() {
         const {editProject, projectName} = this.data.get();
-        await this.$apollo.mutate({
-            mutation: PROJECT_RENAME,
-            variables: {
-                id: editProject.id,
-                name: projectName
-            }
+        await this.actions.renameProject({
+            id: editProject.id,
+            name: projectName
         });
         this.data.set('showRenameModal', false);
-        this.projectApollo();
     }
     handleModalCancel() {
         this.data.set('showRenameModal', false);
     }
     async onRemove(e) {
-        let project = e.item;
-        await this.$apollo.mutate({
-            mutation: PROJECT_REMOVE,
-            variables: {
-                id: project.id
-            },
-            update: cache => {
-                const data = cache.readQuery({query: PROJECTS});
-                let projects = data.projects.filter(p => p.id === project.id);
-                cache.writeQuery({query: PROJECTS, data: {projects}});
-            }
-        });
-        this.projectApollo();
+        this.actions.removeProject(e.item);
     }
     async onFavorite(e) {
-        await this.$apollo.mutate({
-            mutation: PROJECT_SET_FAVORITE,
-            variables: {
-                id: e.item.id,
-                favorite: e.item.favorite ? 0 : 1
-            }
-        });
-        this.projectApollo();
+        this.actions.favoriteProject(e.item);
     }
     async onItemClick(e) {
         let projectCurrent = this.data.get('projectCurrent');
         if (!projectCurrent || projectCurrent.id !== e.item.id) {
-            let res = await this.$apollo.mutate({
-                mutation: PROJECT_OPEN,
-                variables: {
-                    id: e.item.id
-                }
-            });
-            res.data && this.data.set('projectCurrent', res.data.projectOpen);
+            this.actions.openProject(e.item.id);
         }
-        await this.$apollo.mutate({
-            mutation: PROJECT_CWD_RESET
-        });
+        await this.actions.resetCwd();
         let r = this.$t('menu') ? this.$t('menu')[0].link : '';
         this.fire('routeto', r);
     }
 }
+
+connect.san(
+    {
+        projectCurrent: 'projectCurrent',
+        projects: 'projects'
+    },
+    {
+        getCurrentProject: 'project:getCurrentProject',
+        openProject: 'project:openProject',
+        resetCwd: 'project:resetCwd',
+        getProjects: 'project:getProjects',
+        removeProject: 'project:removeProject',
+        favoriteProject: 'project:favoriteProject',
+        renameProject: 'project:renameProject'
+    }
+)(ProjectList);

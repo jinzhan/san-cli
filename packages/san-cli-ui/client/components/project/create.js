@@ -2,8 +2,9 @@
  * @file san项目创建
  * @author jinzhan
  */
-
+import {connect} from '@lib/Store';
 import Component from '@lib/san-component';
+import '@store';
 import PromptsForm from '@components/prompts-form';
 import PROJECT_CREATION from '@graphql/project/projectCreation.gql';
 import CONSOLE_LOG_ADDED from '@graphql/console/consoleLogAdded.gql';
@@ -103,3 +104,9 @@ export default class ProjectCreate extends Component {
         });
     }
 }
+
+connect.san(
+    {
+        cwd: 'cwd'
+    }
+)(ProjectCreate);
