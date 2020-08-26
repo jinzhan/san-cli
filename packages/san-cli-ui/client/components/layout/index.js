@@ -2,12 +2,10 @@
  * @file 带侧边栏布局组件
  * @author zttonly
  */
-
+import {connect} from '@lib/Store';
 import Component from '@lib/san-component';
-import PROJECTS from '@graphql/project/projects.gql';
-import PROJECT_CURRENT from '@graphql/project/projectCurrent.gql';
-import PROJECT_OPEN from '@graphql/project/projectOpen.gql';
 import {Link} from 'san-router';
+import '@store';
 import './index.less';
 import {openInEditor} from '@lib/utils/openInEditor';
 
@@ -29,7 +27,7 @@ export default class ComponentLayout extends Component {
                             </s-menu-item>
                             <s-menu-divider></s-menu-divider>
                             <s-menu-item-group title="{{$t('dropdown.recentProject')}}">
-                                <s-menu-item s-for="project in list" key="{{project.id}}">
+                                <s-menu-item s-for="project in recentProjects" key="{{project.id}}">
                                     <s-icon type="history"></s-icon>{{project.name}}
                                 </s-menu-item>
                             </s-menu-item-group>
@@ -72,43 +70,34 @@ export default class ComponentLayout extends Component {
     };
     initData() {
         return {
-            list: [],
-            projectCurrent: {},
             pageLoading: false
         };
     }
     async inited() {
-        this.getRecentProjectList();
+        this.actions.getRecentProjects();
+        this.actions.getCurrentProject();
+    }
 
-        let projectCurrent = await this.$apollo.query({query: PROJECT_CURRENT});
-        // 当前打开的project,记录在数据库
-        projectCurrent.data && this.data.set('projectCurrent', projectCurrent.data.projectCurrent);
-    }
-    async getRecentProjectList() {
-        const projects = await this.$apollo.query({query: PROJECTS});
-        if (projects.data) {
-            const projectsDuplicate = projects.data.projects.slice();
-            // 之所以不直接对 projects.data.projects 进行 sort，是因为如果这里改了 projects.data.projects，还会影响其它用到了 projects.data.projects 的地方
-            projectsDuplicate.sort((project1, project2) => project2.openDate - project1.openDate);
-            this.data.set('list', projectsDuplicate.slice(1, 4));
-        }
-    }
     async handleMenuClick(e) {
         if (e.key === 'open-in-editor') {
             openInEditor.call(this, this.data.get('projectCurrent.path'));
             return;
         }
 
-        let res = await this.$apollo.mutate({
-            mutation: PROJECT_OPEN,
-            variables: {
-                id: e.key
-            }
-        });
-        res.data && this.data.set('projectCurrent', res.data.projectOpen);
-
-        this.getRecentProjectList();
+        this.actions.openProject(e.key);
+        this.actions.getRecentProjects();
 
         location.reload();
     }
 }
+connect.san(
+    {
+        projectCurrent: 'projectCurrent',
+        recentProjects: 'recentProjects'
+    },
+    {
+        getCurrentProject: 'project:getCurrentProject',
+        openProject: 'project:openProject',
+        getRecentProjects: 'project:getRecentProjects'
+    }
+)(ComponentLayout);
