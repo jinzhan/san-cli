@@ -36,6 +36,7 @@ module.exports = {
     alias: {
         '@': resolve('client'),
         '@lib': resolve('client/lib'),
+        '@store': resolve('client/pages/store'),
         '@assets': resolve('client/assets'),
         '@locales': resolve('client/locales'),
         '@graphql': resolve('client/graphql'),

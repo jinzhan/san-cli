@@ -4,6 +4,7 @@
  */
 
 import {router} from 'san-router';
+import {store} from '@lib/Store';
 import apolloClient from '@lib/apollo-client';
 import ClientAddon, {loadClientAddons} from '@lib/client-addon';
 import Component from '@lib/san-component';
@@ -16,8 +17,8 @@ import Configuration from './configuration';
 import Plugins from './plugins';
 import Dashboard from './dashboard';
 import PROJECT_CURRENT from '@graphql/project/projectCurrent.gql';
-import PROJECT_CWD_RESET from '@graphql/project/projectCwdReset.gql';
-import PLUGINS from '@graphql/plugin/plugins.gql';
+// import PROJECT_CWD_RESET from '@graphql/project/projectCwdReset.gql';
+// import PLUGINS from '@graphql/plugin/plugins.gql';
 import './index.less';
 
 // 暴露全局API，用于集成第三方组件
@@ -49,12 +50,13 @@ routes.forEach(option => router.add(option));
 APP_GRAPHQL_ENDPOINT || router.setMode('html5');
 
 // 初始化时首先校正当前project路径
-const resetStatus = async () => {
-    await apolloClient.mutate({
-        mutation: PROJECT_CWD_RESET
-    });
+const resetStatus = () => {
+    // await apolloClient.mutate({
+    //     mutation: PROJECT_CWD_RESET
+    // });
+    store.dispatch('cwd:resetCwd');
     // plugin初始化需要尽早调用
-    await apolloClient.query({query: PLUGINS});
+    // await apolloClient.query({query: PLUGINS});
 };
 
 router.listen(async (e, config) => {

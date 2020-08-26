@@ -64,6 +64,8 @@
         "san": "^3.8.5",
         "san-cli-utils": "^0.1.0",
         "san-router": "^1.2.2",
+        "san-store": "1.1.0",
+        "san-update": "^2.1.0",
         "santd": "^0.3.0",
         "shortid": "^2.2.15",
         "util": "^0.12.3"
