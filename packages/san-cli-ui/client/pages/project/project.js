@@ -2,10 +2,9 @@
  * @file 项目管理容器
  * @author zttonly
  */
-
+import {connect} from '@lib/Store';
 import {router, Link} from 'san-router';
 import Component from '@lib/san-component';
-import CWD from '@graphql/cwd/cwd.gql';
 import PROJECT_INIT_TEMPLATE from '@graphql/project/projectInitTemplate.gql';
 import PROJECT_TEMPLATE_LIST from '@graphql/project/projectTemplateList.gql';
 import PROJECT_IMPORT from '@graphql/project/projectImport.gql';
@@ -15,6 +14,7 @@ import ProjectTemplateList from '@components/project/template-list';
 import FolderExplorer from '@components/folder-explorer';
 import ProjectCreate from '@components/project/create';
 import Layout from '@components/layout/horizontal';
+import '@store';
 import './project.less';
 import {Modal} from 'santd';
 
@@ -35,10 +35,7 @@ export default class Project extends Component {
 
                     <!--- 2.创建项目 -->
                     <div class="h1oh project-create" s-if="route.query.nav === 'create'">
-                        <c-folder-explorer s-if="current === 0"
-                            current-path="{{cwd}}"
-                            on-change="handleCwdChange"
-                        />
+                        <c-folder-explorer s-if="current === 0" />
                         <c-project-template-list 
                             s-elif="current === 1"
                             s-ref="projectTemplates"
@@ -51,7 +48,6 @@ export default class Project extends Component {
                             s-elif="current === 2"
                             s-ref="create"
                             prompts="{{projectPrompts}}"
-                            cwd="{{cwd}}"
                         />
 
                         <!---底部按钮--->
@@ -93,10 +89,7 @@ export default class Project extends Component {
 
                     <!--- 3.导入项目 -->
                     <div class="h1oh project-import" s-if="route.query.nav === 'import'">
-                        <c-folder-explorer
-                            current-path="{{cwd}}"
-                            on-change="handleCwdChange"
-                        />
+                        <c-folder-explorer />
                         <div class="footer-wrapper">
                             <s-button
                                 class="custom-santd-btn"
@@ -125,14 +118,12 @@ export default class Project extends Component {
     };
     initData() {
         return {
-            cwd: '',
             projectPrompts: [],
             pageLoading: false,
             current: 0,
             menuData: [],
             nav: [],
             isImporting: false,
-            isPackage: false,
             projectTemplateList: [],
             projectTemplate: ''
         };
@@ -143,20 +134,10 @@ export default class Project extends Component {
         let queryNav = this.data.get('route.query.nav');
         this.data.set('menuData', menuData);
         this.data.set('nav', [queryNav || menuData[0].key]);
-
-        let res = await this.$apollo.query({query: CWD});
-        if (res.data) {
-            this.data.set('cwd', res.data.cwd);
-        }
     }
 
     handleRouteTo(r) {
         r && router.locator.redirect(r);
-    }
-
-    handleCwdChange({path, isPackage}) {
-        path && this.data.set('cwd', path);
-        this.data.set('isPackage', isPackage);
     }
 
     formatPrompts(data) {
@@ -227,6 +208,7 @@ export default class Project extends Component {
             }
         });
         this.data.set('isImporting', false);
+        let $t = this.$t;
         if (res.errors && res.errors.some(item => item.message === 'NO_MODULES')) {
             Modal.error({
                 title: $t('project.components.import.noModulesTipsTitle'),
@@ -237,3 +219,10 @@ export default class Project extends Component {
         router.locator.redirect('/');
     }
 }
+
+connect.san(
+    {
+        cwd: 'cwd',
+        isPackage: 'folderCurrent.isPackage'
+    }
+)(Project);

@@ -4,3 +4,4 @@
  */
 
 export * from './cwd';
+export * from './folder';

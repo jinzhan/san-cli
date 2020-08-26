@@ -3,15 +3,10 @@
  * @author zttonly
  */
 
+import {connect} from '@lib/Store';
 import Component from '@lib/san-component';
 import {isValidMultiName} from '@lib/utils/folders';
 import {logo} from '@lib/const';
-import CWD_CHANGE from '@graphql/cwd/cwdChanged.gql';
-import FOLDER_CURRENT from '@graphql/folder/folderCurrent.gql';
-import FOLDERS_FAVORITE from '@graphql/folder/foldersFavorite.gql';
-import FOLDER_OPEN from '@graphql/folder/folderOpen.gql';
-import FOLDER_SET_FAVORITE from '@graphql/folder/folderSetFavorite.gql';
-import FOLDER_CREATE from '@graphql/folder/folderCreate.gql';
 import './folder-explorer.less';
 
 export default class FolderExplorer extends Component {
@@ -25,8 +20,8 @@ export default class FolderExplorer extends Component {
                     <s-input s-if="editing"
                         placeholder="{{$t('project.select.folderExplorer.placeholder.edit')}}"
                         value="{{inputValue}}"
-                        on-blur="openFolder"
-                        on-pressEnter="openFolder"
+                        on-blur="onOpenFolder"
+                        on-pressEnter="onOpenFolder"
                     ></s-input>
                     <template s-else s-for="p,index in paths">
                         <s-button s-if="index === 0"
@@ -52,7 +47,7 @@ export default class FolderExplorer extends Component {
                     </s-button>
                 </s-tooltip>
                 <s-tooltip title="{{$t('project.select.folderExplorer.tooltip.refresh')}}" class="operate-btn">
-                    <s-button type="primary" icon="redo" on-click="openFolder(folderCurrent.path)"></s-button>
+                    <s-button type="primary" icon="redo" on-click="onOpenFolder(folderCurrent.path)"></s-button>
                 </s-tooltip>
                 <s-tooltip s-if="foldersFavorite && foldersFavorite.length > 0"
                     title="{{$t('project.select.folderExplorer.tooltip.starDirs')}}"
@@ -91,7 +86,7 @@ export default class FolderExplorer extends Component {
                 <template s-if="folderCurrent && folderCurrent.children" s-for="folder in folderCurrent.children">
                     <div s-if="showHiddenFolder || !folder.hidden"
                         class="folder-item {{folder.hidden ? 'hidden' : ''}}"
-                        on-click="openFolder(folder.path)"
+                        on-click="onOpenFolder(folder.path)"
                     >
                         <img s-if="folder.isSanProject" class="san-project-icon" src="{{logo}}" />
                         <s-icon s-else type="{{folder.isPackage ? 'folder' : 'folder-open'}}" theme="filled"></s-icon>
@@ -117,17 +112,20 @@ export default class FolderExplorer extends Component {
     static computed = {
         // 计算路径的分割符，linux是'/'，windows是'\\'
         separator() {
-            const currentPath = this.data.get('currentPath');
-            let index = currentPath.indexOf('/');
-            let indexWin = currentPath.indexOf('\\');
+            const cwd = this.data.get('cwd');
+            if (!cwd) {
+                return '';
+            }
+            let index = cwd.indexOf('/');
+            let indexWin = cwd.indexOf('\\');
             return index !== -1 ? '/'
                 : indexWin !== -1 ? '\\' : '';
         },
         // 路径切分为数据，用于页面渲染
         paths() {
-            const currentPath = this.data.get('currentPath');
+            const cwd = this.data.get('cwd');
             const separator = this.data.get('separator');
-            return separator ? currentPath.split(separator) : [currentPath];
+            return separator ? cwd.split(separator) : [cwd];
         },
         newFolderValid() {
             return isValidMultiName(this.data.get('newFolderName'));
@@ -136,7 +134,6 @@ export default class FolderExplorer extends Component {
     initData() {
         return {
             logo,
-            currentPath: '', // 当前路径
             inputValue: '', // 输入框的值
             separator: '', // 分隔符
             editing: false,
@@ -150,43 +147,10 @@ export default class FolderExplorer extends Component {
     }
 
     attached() {
-        this.folderApollo();
-        const observer = this.$apollo.subscribe({query: CWD_CHANGE});
-        observer.subscribe({
-            next: result => {
-                const {data, loading, error, errors} = result;
-                /* eslint-disable no-console */
-                if (error || errors) {
-                    console.log('err');
-                }
-
-                if (loading) {
-                    // TODO: 测试loading态可见时长后决定页面增加显示效果
-                    console.log('loading');
-                }
-
-                if (data && data.cwd) {
-                    this.data.set('currentPath', data.cwd);
-                    this.folderApollo();
-                }
-            },
-            error: err => {
-                console.log('error', err);
-                /* eslint-enable no-console */
-            }
-        });
-    }
-    async folderApollo() {
         this.data.set('loading', false);
-        let folder = await this.$apollo.query({query: FOLDER_CURRENT});
-        if (folder.data) {
-            this.data.set('folderCurrent', folder.data.folderCurrent);
-            this.fire('change', folder.data.folderCurrent);
-        }
-        let star = await this.$apollo.query({query: FOLDERS_FAVORITE});
-        if (star.data) {
-            this.data.set('foldersFavorite', star.data.foldersFavorite);
-        }
+        this.actions.getCurrentFolder();
+        this.actions.getFavoriteFolders();
+        this.actions.cwdChangeObserver();
     }
     onEdit() {
         let {paths, separator} = this.data.get();
@@ -200,34 +164,13 @@ export default class FolderExplorer extends Component {
         let {paths, separator} = this.data.get();
         // 本地根路径，linux是'/'，windows是'C:\\'
         let p = paths.slice(0, index + 1).join(separator) + separator;
-        this.openFolder(p);
+        this.onOpenFolder(p);
     }
     onStarMenuClick(e) {
-        this.openFolder(e.key);
+        this.onOpenFolder(e.key);
     }
     async onFavorite() {
-        const folderCurrent = this.data.get('folderCurrent');
-        await this.$apollo.mutate({
-            mutation: FOLDER_SET_FAVORITE,
-            variables: {
-                path: folderCurrent.path,
-                favorite: !folderCurrent.favorite
-            },
-            update: (cache, {data: {folderSetFavorite}}) => {
-                cache.writeQuery({query: FOLDER_CURRENT, data: {folderCurrent: folderSetFavorite}});
-                let {foldersFavorite} = cache.readQuery({query: FOLDERS_FAVORITE});
-                if (folderSetFavorite.favorite) {
-                    foldersFavorite.push(folderSetFavorite);
-                }
-                else {
-                    foldersFavorite = foldersFavorite.filter(
-                        f => f.path !== folderSetFavorite.path
-                    );
-                }
-                cache.writeQuery({query: FOLDERS_FAVORITE, data: {foldersFavorite}});
-                this.folderApollo();
-            }
-        });
+        this.actions.setFavoriteFolder();
     }
     onMoreMenuClick(e) {
         switch (e.key) {
@@ -239,21 +182,11 @@ export default class FolderExplorer extends Component {
                 break;
         }
     }
-    async openFolder(path) {
+    async onOpenFolder(path) {
         this.data.set('editing', false);
         this.data.set('loading', true);
         try {
-            await this.$apollo.mutate({
-                mutation: FOLDER_OPEN,
-                variables: {
-                    path
-                },
-                update: (cache, {data: {folderOpen}}) => {
-                    cache.writeQuery({query: FOLDER_CURRENT, data: {folderCurrent: folderOpen}});
-                    // notify parent component
-                    this.fire('change', folderOpen);
-                }
-            });
+            this.actions.openFolder(path);
         }
         catch (e) {
             this.data.set('error', e);
@@ -261,24 +194,34 @@ export default class FolderExplorer extends Component {
         this.data.set('loading', false);
     }
     handleModalOk() {
-        this.createFolder();
+        this.onCreateFolder();
         this.data.set('showCreateModal', false);
     }
     handleModalCancel() {
         this.data.set('showCreateModal', false);
     }
-    async createFolder() {
+    onCreateFolder() {
         let {newFolderName, newFolderValid} = this.data.get();
         if (!newFolderValid) {
             return;
         }
-        let result = await this.$apollo.mutate({
-            mutation: FOLDER_CREATE,
-            variables: {
-                name: newFolderName
-            }
-        });
-        this.openFolder(result.data.folderCreate.path);
+        this.actions.createFolder(newFolderName);
         this.data.set('newFolderName', '');
     }
 }
+
+connect.san(
+    {
+        cwd: 'cwd',
+        folderCurrent: 'folderCurrent',
+        foldersFavorite: 'foldersFavorite'
+    },
+    {
+        getCurrentFolder: 'folder:getCurrentFolder',
+        getFavoriteFolders: 'folder:getFavoriteFolders',
+        openFolder: 'folder:openFolder',
+        setFavoriteFolder: 'folder:setFavoriteFolder',
+        createFolder: 'folder:createFolder',
+        cwdChangeObserver: 'folder:cwdChangeObserver'
+    }
+)(FolderExplorer);
