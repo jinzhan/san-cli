@@ -25,7 +25,7 @@ module.exports = function getNormalizeWebpackConfig(api, projectOptions, argv) {
         entry,
         api.resolve(entry),
         webpackConfig,
-        require.resolve('san-cli-service/template/main.js')
+        require.resolve('../template/main.js')
     );
     webpackConfig.devServer = Object.assign(
         {

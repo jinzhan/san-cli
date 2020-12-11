@@ -9,7 +9,7 @@
  */
 
 module.exports = (name, api, callback) => {
-    const Service = require('san-cli-service');
+    const Service = require('./Service');
     const flatten = require('san-cli-utils/utils').flatten;
     const cwd = api.getCwd();
 

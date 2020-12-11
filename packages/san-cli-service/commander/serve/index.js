@@ -55,5 +55,5 @@ exports.handler = cliApi => {
     }
     const callback = run.bind(run, cliApi);
 
-    require('../../lib/service')('serve', cliApi, callback);
+    require('../../../san-cli/lib/service')('serve', cliApi, callback);
 };
