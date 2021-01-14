@@ -9,7 +9,7 @@
  */
 
 const semver = require('semver');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const {cssnanoOptions: defaultCssnanoOptions} = require('../options');
 const {findExisting} = require('san-cli-utils/path');
 const {warn} = require('san-cli-utils/ttyLogger');
@@ -229,10 +229,8 @@ module.exports = {
                     };
                     // 压缩
                     webpackConfig.optimization.minimizer('css').use(
-                        new OptimizeCSSAssetsPlugin({
-                            assetNameRegExp: /\.css$/g,
-                            cssProcessorOptions: nanoOptions,
-                            canPrint: true
+                        new CssMinimizerPlugin({
+                            test: /\.css$/g
                         })
                     );
                 }

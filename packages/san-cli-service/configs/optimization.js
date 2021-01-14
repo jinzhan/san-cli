@@ -8,7 +8,6 @@
  * @author ksky521
  */
 
-const TerserPlugin = require('terser-webpack-plugin');
 const {getAssetPath} = require('san-cli-utils/path');
 const {terserOptions: defaultTerserOptions} = require('../options');
 
@@ -117,6 +116,8 @@ module.exports = {
             if (splitChunks) {
                 webpackConfig.optimization.splitChunks(splitChunks);
             }
+
+            /*
             webpackConfig.optimization.minimizer('js').use(
                 new TerserPlugin({
                     extractComments: false,
@@ -126,13 +127,18 @@ module.exports = {
                     terserOptions: Object.assign(defaultTerserOptions, terserOptions)
                 })
             );
+            */
 
             // keep module.id stable when vendor modules does not change
+
+            /* TODO:
+            // HashedModuleIdsPlugin → optimization.moduleIds: 'deterministic'
             webpackConfig.plugin('hash-module-ids').use(require('webpack/lib/HashedModuleIdsPlugin'), [
                 {
                     hashDigest: 'hex'
                 }
             ]);
+            */
         });
     }
 };

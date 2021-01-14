@@ -30,7 +30,8 @@ module.exports = {
             webpackConfig.output
                 .path(api.resolve(projectOptions.outputDir))
                 // 留个小彩蛋吧~
-                .jsonpFunction(projectOptions.jsonpFunction || 'HK3')
+                // TODO: immigrate to chunkLoadingGlobal
+                // .jsonpFunction(projectOptions.jsonpFunction || 'HK3')
                 /* eslint-disable max-len */
                 .filename((isLegacyBundle ? '[name]-legacy' : '[name]') + `${projectOptions.filenameHashing ? '.[contenthash:8]' : ''}.js`)
                 /* eslint-enable max-len */
@@ -43,9 +44,6 @@ module.exports = {
                     .set('symlinks', false)
                     // 默认加上 less 吧，less 内部用的最多
                     .extensions.merge(['.js', '.css', '.less', '.san'])
-                    .end()
-                .plugin('pnp')
-                    .use({...require('pnp-webpack-plugin')})
                     .end()
                 .modules
                     .add('node_modules')
@@ -64,6 +62,7 @@ module.exports = {
 
             // prettier-ignore
             // set resolveLoader
+            /**
             const resolveLoader = webpackConfig
                 .resolveLoader
                 // 添加 pnp-loader
@@ -74,6 +73,7 @@ module.exports = {
                     .add('node_modules')
                     .add(api.resolve('node_modules'))
                     .add(resolveLocal('node_modules'));
+            */
 
             //  优先考虑本地安装的html-loader版本，没有的话去全局路径寻找
             try {
@@ -161,9 +161,8 @@ module.exports = {
             webpackConfig.plugin('define').use(require('webpack/lib/DefinePlugin'), [defineVar()]);
             if (!isProd) {
                 // dev mode
-                webpackConfig.devtool('cheap-module-eval-source-map');
+                webpackConfig.devtool('eval-cheap-module-source-map');
                 webpackConfig.plugin('hmr')
-                    .use(require('webpack/lib/NamedModulesPlugin'))
                     .use(require('webpack/lib/HotModuleReplacementPlugin'));
                 webpackConfig.plugin('no-emit-on-errors').use(require('webpack/lib/NoEmitOnErrorsPlugin'));
             }
