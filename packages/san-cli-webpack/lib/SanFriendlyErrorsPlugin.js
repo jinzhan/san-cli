@@ -50,18 +50,11 @@ const msgReplaces = [
 ];
 
 function isLikelyASyntaxError(message) {
-    if (!message || !message.indexOf) {
-        return;
-    }
     return message.indexOf(friendlySyntaxErrorLabel) !== -1;
 }
 
 // Cleans up webpack error messages.
 function formatMessage(message) {
-    if (!message || !message.split) {
-        return;
-    }
-
     let lines = message.split('\n');
 
     // Strip webpack-added headers off errors/warnings
@@ -130,11 +123,8 @@ function formatWebpackMessages(json) {
 }
 function showError(arr) {
     clearConsole();
-    error(chalk.red(`Failed to compile with ${arr.length} errors.`));
+    error(chalk.red(`[SanFriendlyErrorsPlugin]Failed to compile with ${arr.length} errors.`));
     arr.forEach(message => {
-            if (!message || !message.split) {
-                return;
-            }
         const lines = message.split('\n');
 
         const typeRegExp = /^([A-Z]\w+)Error:\s*(.+?)$/;
