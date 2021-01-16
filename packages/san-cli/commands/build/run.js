@@ -39,47 +39,58 @@ module.exports = function apply(argv, api, projectOptions) {
     }
     // 编译成功处理逻辑
     function success({stats: webpackStats}, {isModern, isModernBuild} = {}) {
-        if (!analyze) {
-            // 只有在非 analyze 模式下才会输出 log
-            const targetDir = api.resolve(dest || projectOptions.outputDir);
-            const targetDirShort = path.relative(api.getCwd(), targetDir);
-            const stats = webpackStats.toJson({
-                all: false,
-                entrypoints: true,
-                assets: true,
-                chunks: true,
-                version: true,
-                timings: true,
-                performance: true
-            });
+        if (analyze) {
+            successLog('Build complete. Watching for changes...');
+            return;
+        }
+
+        // 只有在非 analyze 模式下才会输出 log
+        const targetDir = api.resolve(dest || projectOptions.outputDir);
+        const targetDirShort = path.relative(api.getCwd(), targetDir);
+        const stats = webpackStats.toJson({
+            all: false,
+            entrypoints: true,
+            assets: true,
+            chunks: true,
+            version: true,
+            timings: true,
+            performance: true
+        });
+
+        // return ok
+        console.log({stats, targetDirShort});
+        // return;
+
+        try {
             console.log(
                 require('san-cli-webpack/lib/formatStats')(stats, targetDirShort, {
                     resolve: p => api.resolve(p)
                 })
             );
-
-            if (!watch) {
-                const duration = (Date.now() - startTime) / 1e3;
-                if (isModern) {
-                    if (isModernBuild) {
-                        successLog('Build modern bundle success');
-                    }
-                    else {
-                        successLog('Build legacy bundle success');
-                        console.log();
-                    }
-                    return;
-                }
-                const {time, version} = stats;
-                successLog(
-                    `The ${textCommonColor(targetDirShort)} directory is ready to be deployed. Duration ${
-                        textCommonColor(`${duration}/${time / 1e3}s`)
-                    }, Webpack ${version}.`
-                );
-            }
         }
-        else {
-            successLog('Build complete. Watching for changes...');
+        catch (e) {
+            error(e);
+        }
+
+        // return error;
+        if (!watch) {
+            const duration = (Date.now() - startTime) / 1e3;
+            if (isModern) {
+                if (isModernBuild) {
+                    successLog('Build modern bundle success');
+                }
+                else {
+                    successLog('Build legacy bundle success');
+                    console.log();
+                }
+                return;
+            }
+            const {time, version} = stats;
+            successLog(
+                `The ${textCommonColor(targetDirShort)} directory is ready to be deployed. Duration ${
+                    textCommonColor(`${duration}/${time / 1e3}s`)
+                }, Webpack ${version}.`
+            );
         }
     }
 
