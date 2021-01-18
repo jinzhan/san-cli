@@ -36,7 +36,6 @@ module.exports = function build({webpackConfig, compilerCallback}) {
         }
 
         const callback = (err, stats) => {
-            console.log({err, stats});
             if (err || stats.hasErrors()) {
                 debug(err);
                 let errorInfo;

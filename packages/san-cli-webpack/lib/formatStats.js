@@ -115,7 +115,7 @@ module.exports = function formatStats(stats, destDir, {resolve}) {
                 return false;
             }
             // 标识下 common 的模块类型
-            if (a.chunks.length === 1 && commonChunksIds.has(a.chunks[0])) {
+            if (a.chunks && a.chunks.length === 1 && commonChunksIds.has(a.chunks[0])) {
                 a.type = ['common'];
             }
             else {

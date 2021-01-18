@@ -57,22 +57,15 @@ module.exports = function apply(argv, api, projectOptions) {
             performance: true
         });
 
-        // return ok
-        console.log({stats, targetDirShort});
-        // return;
-
         try {
-            console.log(
-                require('san-cli-webpack/lib/formatStats')(stats, targetDirShort, {
-                    resolve: p => api.resolve(p)
-                })
-            );
+            require('san-cli-webpack/lib/formatStats')(stats, targetDirShort, {
+                resolve: p => api.resolve(p)
+            });
         }
         catch (e) {
             error(e);
         }
 
-        // return error;
         if (!watch) {
             const duration = (Date.now() - startTime) / 1e3;
             if (isModern) {
@@ -81,7 +74,6 @@ module.exports = function apply(argv, api, projectOptions) {
                 }
                 else {
                     successLog('Build legacy bundle success');
-                    console.log();
                 }
                 return;
             }

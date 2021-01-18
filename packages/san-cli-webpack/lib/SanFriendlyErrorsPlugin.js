@@ -148,7 +148,6 @@ function showError(arr) {
 }
 function showWarning(arr) {
     warn(`Compiled with ${arr.length} warnings.`);
-    console.log(`${arr.join('\n\n')}`);
 }
 
 module.exports = class SanFriendlyErrorsPlugin {
