@@ -44,7 +44,9 @@ module.exports = function formatStats(stats, destDir, {resolve}) {
     // 1. 找出 entry 中的自身包含的 chunkid，排除公共chunk 的 id
     const commonChunksIds = new Set();
     Object.keys(entrypoints).map(name => {
-        entrypoints[name].chunks.forEach(chunkId => {
+        const chunks = entrypoints[name].chunks;
+        // TODO: webpack5升级的时候，这里的chunks变成了undefined了
+        chunks && chunks.forEach(chunkId => {
             // 存在，那么就是公共模块 id，添加进公共模块 ids
             if (uniChunksMap.has(chunkId)) {
                 commonChunksIds.add(chunkId);
@@ -56,8 +58,8 @@ module.exports = function formatStats(stats, destDir, {resolve}) {
     });
 
     const entries = Object.keys(entrypoints).map(name => {
-        const entry = entrypoints[name];
-        const {prefetch = [], preload = []} = entry.children;
+        const entry = entrypoints[name] || {};
+        const {prefetch = [], preload = []} = entry.children || {};
 
         let prefetchChunks = [];
         let preloadChunks = [];
@@ -76,7 +78,7 @@ module.exports = function formatStats(stats, destDir, {resolve}) {
 
         const asyncChunks = [];
 
-        entry.chunks.forEach(chunkId => {
+        entry.chunks && entry.chunks.forEach(chunkId => {
             if (!commonChunksIds.has(chunkId)) {
                 const chunk = getChunksById(chunkId);
                 // 2. 非公共模块则查找他的 children
