@@ -8,6 +8,7 @@
  * @author ksky521
  */
 
+const TerserPlugin = require('terser-webpack-plugin');
 const {getAssetPath} = require('san-cli-utils/path');
 const {terserOptions: defaultTerserOptions} = require('../options');
 
@@ -117,17 +118,13 @@ module.exports = {
                 webpackConfig.optimization.splitChunks(splitChunks);
             }
 
-            /*
             webpackConfig.optimization.minimizer('js').use(
                 new TerserPlugin({
                     extractComments: false,
-                    sourceMap: ifSourcemap,
                     parallel: true,
-                    cache: true,
                     terserOptions: Object.assign(defaultTerserOptions, terserOptions)
                 })
             );
-            */
 
             // keep module.id stable when vendor modules does not change
 
