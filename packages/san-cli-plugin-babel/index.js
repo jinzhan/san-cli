@@ -63,7 +63,7 @@ module.exports = {
 
             jsRule
                 .use('babel-loader')
-                .loader('babel-loader')
+                .loader(require.resolve('babel-loader'))
                 .options({
                     presets: [
                         loaderOptions.babel

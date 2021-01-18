@@ -123,12 +123,12 @@ module.exports = {
                     }
 
                     rule.use('css-loader')
-                        .loader('css-loader')
+                        .loader(require.resolve('css-loader'))
                         .options(cssLoaderOptions);
 
                     if (hasPostCSSConfig) {
                         rule.use('postcss-loader')
-                            .loader('postcss-loader')
+                            .loader(require.resolve('postcss-loader'))
                             .options(
                                 Object.assign(
                                     {
@@ -182,7 +182,7 @@ module.exports = {
                     createCSSRule(
                         'sass',
                         /\.sass$/,
-                        'sass-loader',
+                        require.resolve('sass-loader'),
                         Object.assign(loaderOptions.sass || {}, {
                             sassOptions: Object.assign({}, loaderOptions.sass && loaderOptions.sass.sassOptions, {
                                 indentedSyntax: true
@@ -195,7 +195,7 @@ module.exports = {
                 createCSSRule(
                     'less',
                     /\.less$/,
-                    'less-loader',
+                    require.resolve('less-loader'),
                     Object.assign(
                         {
                             javascriptEnabled: true,

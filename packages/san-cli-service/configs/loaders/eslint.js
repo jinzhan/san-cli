@@ -14,7 +14,7 @@ module.exports = factory(
     options => {
         return {
             name: 'eslint',
-            loader: 'eslint-loader',
+            loader: require.resolve('eslint-loader'),
             options
         };
     },
