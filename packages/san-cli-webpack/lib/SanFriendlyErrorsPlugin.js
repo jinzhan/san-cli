@@ -147,6 +147,7 @@ function showError(arr) {
 
 }
 function showWarning(arr) {
+    arr.forEach(err => warn(err));
     warn(`Compiled with ${arr.length} warnings.`);
 }
 
