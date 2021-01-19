@@ -47,23 +47,25 @@ module.exports = function apply(argv, api, projectOptions) {
         // 只有在非 analyze 模式下才会输出 log
         const targetDir = api.resolve(dest || projectOptions.outputDir);
         const targetDirShort = path.relative(api.getCwd(), targetDir);
+
+
         const stats = webpackStats.toJson({
-            all: false,
             entrypoints: true,
             assets: true,
             chunks: true,
-            version: true,
-            timings: true,
-            performance: true
+            hash: false,
+            modules: false
         });
 
         try {
-            require('san-cli-webpack/lib/formatStats')(stats, targetDirShort, {
+            const statsInfo = require('san-cli-webpack/lib/formatStats')(stats, targetDirShort, {
                 resolve: p => api.resolve(p)
             });
+            // eslint-disable-next-line no-console
+            console.log(statsInfo);
         }
-        catch (e) {
-            error(e);
+        catch (err) {
+            error(err);
         }
 
         if (!watch) {
