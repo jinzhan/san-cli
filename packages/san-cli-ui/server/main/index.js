@@ -7,7 +7,7 @@ const {ApolloServer} = require('apollo-server-express');
 const {getDebugLogger} = require('san-cli-utils/ttyLogger');
 const typeDefs = require('./schema');
 const resolvers = require('./resolves');
-const db = require('../models/db');
+const db = require('../data/db');
 const pubsub = require('./pubsub');
 const debug = getDebugLogger('ui:ApolloServer');
 

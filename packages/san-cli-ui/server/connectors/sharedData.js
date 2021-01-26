@@ -5,7 +5,7 @@
 
 const {getDebugLogger} = require('san-cli-utils/ttyLogger');
 const channels = require('../utils/channels');
-const $data = require('../models/data');
+const $data = require('../data/sharedData');
 const {get, set, unset} = require('lodash');
 
 const debug = getDebugLogger('ui:connectors:sharedData');
