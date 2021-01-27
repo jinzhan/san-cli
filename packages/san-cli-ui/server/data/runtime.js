@@ -1,5 +1,5 @@
 /**
- * @file 设置/获取cwd
+ * @file runtime存储的临时数据
  * @author jinzhan
  */
 
@@ -8,24 +8,26 @@ const {error} = require('san-cli-utils/ttyLogger');
 const {CWD_CHANGED} = require('../utils/channels');
 const {normalizeDir} = require('../utils/fileHelper');
 
-class Cwd {
-    constructor() {
-        this.cwd = process.cwd();
-    }
+let currentCwd = process.cwd();
+
+// process.cwd()的getter和setter
+const cwd = {
     get() {
-        return this.cwd;
-    }
+        return currentCwd;
+    },
+
     set(value, context) {
         value = normalizeDir(value);
         if (!fs.existsSync(value)) {
             return;
         }
-        this.cwd = value;
+        currentCwd = value;
         let isWritable;
         try {
             fs.accessSync(value, fs.constants.W_OK);
             isWritable = true;
-        } catch (err) {
+        }
+        catch (err) {
             isWritable = false;
         }
         context.pubsub.publish(CWD_CHANGED, {
@@ -41,6 +43,9 @@ class Cwd {
             error(`chdir: ${err}`);
         }
     }
-}
+};
 
-module.exports = new Cwd();
+
+module.exports = {
+    cwd
+};

@@ -1,7 +1,6 @@
 const {getDebugLogger} = require('san-cli-utils/ttyLogger');
-const cwd = require('./cwd');
+const {cwd} = require('../data/runtime');
 const channels = require('../utils/channels');
-const plugins = require('./plugins');
 
 const debug = getDebugLogger('ui:views');
 
@@ -87,23 +86,14 @@ class Views {
         }
     }
 
+    getCurrent() {
+        return this.currentView;
+    }
+
     open(id, context) {
         const view = this.findOne(id);
         debug('Open View:', view);
         this.currentView = view;
-        plugins.callHook({
-            id: 'viewOpen',
-            args: [{
-                view,
-                cwd: cwd.get()
-            }],
-            file: cwd.get()
-        }, context);
-        return true;
-    }
-
-    getCurrent() {
-        return this.currentView;
     }
 };
 

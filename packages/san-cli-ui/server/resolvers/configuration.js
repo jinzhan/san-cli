@@ -2,7 +2,7 @@
  * @file 项目配置相关的resolver
  * @author zttonly
 */
-const configurations = require('../connectors/configurations');
+const configurations = require('../models/configurations');
 const cwd = require('../connectors/cwd');
 const plugins = require('../connectors/plugins');
 

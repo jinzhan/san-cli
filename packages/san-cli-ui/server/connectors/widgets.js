@@ -4,8 +4,7 @@
 */
 
 const shortid = require('shortid');
-const cwd = require('./cwd');
-const prompts = require('./prompts');
+const {cwd} = require('../data/runtime');
 const {getDebugLogger} = require('san-cli-utils/ttyLogger');
 const debug = getDebugLogger('ui:widget');
 
@@ -286,34 +285,33 @@ class Widgets {
     async openConfig({id}, context) {
         const widget = this.findById({id}, context);
         const definition = this.findDefinition(widget, context);
+        let result = null;
         if (definition.onConfigOpen) {
-            const result = await definition.onConfigOpen({
+            result = await definition.onConfigOpen({
                 widget,
                 definition,
                 context
             });
-            await prompts.reset(widget.config || {});
-            result.prompts.forEach(item => prompts.add(item));
-            await prompts.start();
             this.currentWidget = widget;
         }
-        return widget;
+        const promptsData = result && result.prompts;
+        return {
+            widget,
+            promptsData
+        };
     }
 
-    getConfigPrompts({id}, context) {
-        return this.currentWidget && this.currentWidget.id === id
-            ? prompts.list() : [];
+    isCurrentWidget(id) {
+        return this.currentWidget && this.currentWidget.id === id;
     }
 
     saveConfig({id}, context) {
         const widget = this.findById({id}, context);
-        widget.config = prompts.getAnswers();
         widget.configured = true;
         this.save(context);
         this.currentWidget = null;
         return widget;
     }
-
 }
 
 module.exports = new Widgets();

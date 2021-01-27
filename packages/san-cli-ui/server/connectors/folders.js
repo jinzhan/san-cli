@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const {generateFolder} = require('../utils/fileHelper');
-const cwd = require('./cwd');
+const {cwd} = require('../data/runtime');
 
 class Folders {
     getCurrent(args, context) {

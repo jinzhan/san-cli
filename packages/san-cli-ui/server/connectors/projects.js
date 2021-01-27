@@ -14,9 +14,9 @@ const downloadRepo = require('san-cli-utils/downloadRepo');
 const {getLocalTplPath} = require('san-cli-utils/path');
 const channels = require('../utils/channels');
 const notify = require('../utils/notify');
-const cwd = require('./cwd');
 const events = require('../utils/events');
 const {isSanProject, readPackage} = require('../utils/fileHelper');
+const {cwd} = require('../data/runtime');
 
 const SAN_CLI_UI_DEV = process.env.SAN_CLI_UI_DEV === 'true';
 
